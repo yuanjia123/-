@@ -21,20 +21,20 @@ class Login(object):
         return token
 
     def login(self, email, password):
-        post_data = {
+        post_data = {                        #在form data  下面的数据中找到
             'commit': 'Sign in',
             'utf8': '✓',
-            'authenticity_token': self.token()[0],
+            'authenticity_token': self.token()[0],    #直接调用， 上面获取到的token  参数
             'login': email,
             'password': password
         }
-        response = self.session.post(self.post_url, data=post_data, headers=self.headers)
+        response = self.session.post(self.post_url, data=post_data, headers=self.headers)   #放入 post请求的header里面。
         if response.status_code == 200:
-            self.dynamics(response.text)
+            self.dynamics(response.text)    #登录成功以后跳转到首页， 首页有所有人的动态。 拿到以后，打印所有人，
 
         response = self.session.get(self.logined_url, headers=self.headers)
         if response.status_code == 200:
-            self.profile(response.text)
+            self.profile(response.text)   #在用到这个方法， 处理详细页面的个人信息。
 
     def dynamics(self, html):
         selector = etree.HTML(html)
@@ -46,9 +46,9 @@ class Login(object):
     def profile(self, html):
         print(html)
         selector = etree.HTML(html)
-        #name = selector.xpath('//input[@id="user_profile_name"]/@value')[0]
-        email = selector.xpath('//select[@id="user_profile_email"]/option[@value!=""]/text()')
-        print(name, email)
+        name = selector.xpath('//input[@id="user_profile_name"]/@value')[0]                       # 哪个人的name
+        email = selector.xpath('//select[@id="user_profile_email"]/option[@value!=""]/text()')   #哪个人的email
+        print(name, email)                                                                       #将他们打印出来
 
 
 if __name__ == "__main__":
