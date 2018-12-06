@@ -124,7 +124,6 @@ class get_location():
             'Referer': 'https://weibo.com/2889942201/GFo7omJqz?type=comment',
             'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.67 Safari/537.36',
             'X-Requested-With': 'XMLHttpRequest'
-
         }
 
         # self.f = xlwt.Workbook(encoding='utf-8')
@@ -154,11 +153,14 @@ class get_location():
         return id,time
 
     def page_parse(self,html):
-        page = int(re.findall("totalpage\":(\d*)\,", html.replace('\\', ''))[0])
+        try:
+            page = int(re.findall("totalpage\":(\d*)\,", html.replace('\\', ''))[0])
+        except:
+            print("页码匹配有问题")
         return page
 
 
-    def location_parse(self,response,url,time):
+    def location_parse(self,response,url,time,source):
         res = response.content.decode()
 
         li = []
@@ -173,7 +175,7 @@ class get_location():
 
         li.append(time)
         li.append(url)
-
+        li.append(source)
         scripts = selector.xpath('.//script')
         for script in scripts:
             try:
@@ -193,7 +195,7 @@ class get_location():
 
             except:
                 pass
-
+        print("li:{}  {}".format(li,len(li)))
         self.excel_write(li)
 
     def excel_write(self, li_list):
@@ -205,17 +207,17 @@ class get_location():
 
         try:
             li_list[0] = str(li_list[0])
-            if len(li_list) > 4:
-                li_list_1 = li_list[:4]  #浅3
-                li_list_2 = li_list[4:]  #3个之后
+            if len(li_list) > 5:
+                li_list_1 = li_list[:5]  #浅3
+                li_list_2 = li_list[5:]  #3个之后
                 other = '|'.join(li_list_2)
 
-                cur.execute("INSERT INTO bjzs_big_data.xinlang_spider2(name_1,time_1,url,location,other_info) VALUES (%s,%s,%s,%s,%s);", (li_list_1[0], li_list_1[1], li_list_1[2],li_list_1[3],other))
+                cur.execute("INSERT INTO bjzs_big_data.xinlang_spider2(name_1,time_1,url,scouce,location,other_info) VALUES (%s,%s,%s,%s,%s,%s);", (li_list_1[0], li_list_1[1], li_list_1[2],li_list_1[3],li_list_1[4],other))
 
-            elif len(li_list) == 4:
+            elif len(li_list) == 5:
 
                 cur.execute(
-                    "INSERT INTO bjzs_big_data.xinlang_spider2(name_1,time_1,url,location) VALUES (%s,%s,%s,%s);",(li_list[0], li_list[1], li_list[2], li_list[3]))
+                    "INSERT INTO bjzs_big_data.xinlang_spider2(name_1,time_1,url,scouce,location) VALUES (%s,%s,%s,%s,%s);",(li_list[0], li_list[1], li_list[2], li_list[3],li_list[4]))
 
             else:
                 pass
@@ -236,6 +238,13 @@ if __name__ == '__main__':
     session = login.login()
 
     a = get_location()
+
+    scouce = {4298971540840704: '法制日报', 4298989816221761: '成都这点事', 4299075702378443: '澎湃新闻', 4299418075146118: '蓝鲸财经记者工作平台',
+     4299076473993416: '头条新闻', 4299003476719307: '新京报', 4298998359639309: '新京报我们视频', 4298973378181968: '锋潮科技',
+     4299080815406936: '凤凰网视频', 4298982337445859: '老徐时评', 4298996928897636: '环球时报', 4299406599766183: '新京报我们视频',
+     4299000293571112: '头条新闻', 4299063618905257: '凯雷', 4299022045365996: '时间视频', 4299009805606128: '成都文理学院',
+     4299013086352881: '环球网', 4298641625417843: '直播成都', 4299011664045877: '北京青年报', 4299423812784809: '新京报',
+     4299082115420281: '蓝鲸财经记者工作平台', 4298997394909242: '头条新闻', 4299439852536956: '界面', 4298989430127358: '梨视频'}
 
     #重点微博大咔
     dirt_id = {'4299418075146118': '4299846586743814', '4299423812784809': '4307760998861888', '4298996928897636': '4310362948039865', '4299009805606128': '4310566774816676', '4298982337445859': '4308161407894835', '4299022045365996': '4309604827130660', '4298641625417843': '4310355239287474', '4299013086352881': '4299307195064641', '4298989816221761': '4304012913833423', '4298971540840704': '4299716550047906', '4299080815406936': '4310928705430116', '4299075702378443': '4303543387120975', '4299063618905257': '4305250707383790', '4299439852536956': '4300603800872111', '4298973378181968': '4308019552712965', '4299082115420281': '4299577743524389', '4299076473993416': '4303495751918534', '4298998359639309': '4308205515941261', '4298989430127358': '4311085508508944', '4298997394909242': '4311251749949443', '4299003476719307': '4299701576388896', '4299000293571112': '4300423923977119', '4299406599766183': '4300644934158879', '4299011664045877': '4299105578278556'}
@@ -262,18 +271,11 @@ if __name__ == '__main__':
                 for m in range(0,len(id_list)):                                                    #这里写的有问题， 正确的写法是  len(id_list) + 1
                     private_url = oneself.format(id_list[m])      #取每一个用户id。 然后进行拼接。
                     print("详细页面的url", private_url)    #生成每一个用户的url.
-                    pool.apply_async(a.location_parse(session.get(private_url, headers= a.headers, verify=False, timeout = 3),private_url,time_list[m]))  # 这个线程池传参 、原因如果单一去访问。就会变得很慢。  verify=False 是验证证书。
-    except:
-        pass
+                    pool.apply_async(a.location_parse(session.get(private_url, verify=False),private_url,time_list[m],scouce[int(i)]))  # 这个线程池传参 、原因如果单一去访问。就会变得很慢。  verify=False 是取消验证证书。    1、(, headers= a.headers)去掉了这个 2、timeout=3
+    except Exception as err:
+        print("打印异常",err)
     pool.close()  # 关闭线程池， 不在提交任务，
     pool.join()  # 等待线程池里面的任务 运
 
-
-
-
-
-
-    #全部
-    #{'4299418075146118': '4299846586743814', '4299423812784809': '4307760998861888', '4298996928897636': '4310362948039865', '4299009805606128': '4310566774816676', '4298982337445859': '4308161407894835', '4299022045365996': '4309604827130660', '4298641625417843': '4310355239287474', '4299013086352881': '4299307195064641', '4298989816221761': '4304012913833423', '4298971540840704': '4299716550047906', '4299080815406936': '4310928705430116', '4299075702378443': '4303543387120975', '4299063618905257': '4305250707383790', '4299439852536956': '4300603800872111', '4298973378181968': '4308019552712965', '4299082115420281': '4299577743524389', '4299076473993416': '4303495751918534', '4298998359639309': '4308205515941261', '4298989430127358': '4311085508508944', '4298997394909242': '4311251749949443', '4299003476719307': '4299701576388896', '4299000293571112': '4300423923977119', '4299406599766183': '4300644934158879', '4299011664045877': '4299105578278556'}
 
 
