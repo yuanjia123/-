@@ -144,7 +144,6 @@ class get_location():
 
 
     def parse(self, html):  # 解析
-        #print(type(html))
         try:
             id = list(set(re.findall('usercard="id=(\d{10})"',html.replace('\\',''))))
             time = re.findall(r'title=\"(\d{4}-\d{1,2}-\d{1,2} \d{2}:\d{2})\"',html.replace('\\',''))
@@ -159,12 +158,13 @@ class get_location():
             print("页码匹配有问题")
         return page
 
-
+    # def location_parse(self,b):
+    #     print("测试",b)
     def location_parse(self,response,url,time,source):
-        res = response.content.decode()
-
+        #res = response.content.decode()
+        #res = response.text()
         li = []
-        selector = etree.HTML(res)
+        selector = etree.HTML(response)
         try:
             name = selector.xpath('//title/text()')[0]
             print("*"*50, name)
@@ -203,7 +203,6 @@ class get_location():
         cur = conn.cursor()
         other = None
 
-        print("li_list", li_list)
 
         try:
             li_list[0] = str(li_list[0])
@@ -237,6 +236,20 @@ if __name__ == '__main__':
     login.get_json_data()  # 开始请求
     session = login.login()
 
+    headers_1 = {
+
+        'Accept': '*/*',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Accept-Language': 'zh-CN,zh;q=0.9',
+        'Connection': 'keep-alive',
+        'Content-Type': 'application/x-www-form-urlencoded',
+        #'Cookie': 'SINAGLOBAL=686853348606.9484.1541139120819; SCF=AkhFCrKCUq9wsyl3f_fDwgGgFRpQSCclo3gd_NQHuXjdyEEjbRsY9PC-MgFG6xjCDbPu4IOAIOCXyPLirzjFWdo.; SUHB=00xZwj0czv30Gl; Ugrow-G0=56862bac2f6bf97368b95873bc687eef; SL_GWPT_Show_Hide_tmp=1; SL_wptGlobTipTmp=1; YF-Page-G0=86b4280420ced6d22f1c1e4dc25fe846; YF-V5-G0=a9b587b1791ab233f24db4e09dad383c; wb_view_log_6382564064=1920*10801; _s_tentry=-; Apache=2872156489358.7036.1542848804714; ULV=1542848804736:6:6:3:2872156489358.7036.1542848804714:1542706013869; _T_WM=3e8b91cb0fc1afc6f6b197111618f23a; SUBP=0033WrSXqPxfM72wWs9jqgMF55529P9D9Wh3SFjwsRGoBE8ZBHKOX.cV5JpVF02RehnESKe41h24; SUB=_2AkMsqrpQdcPxrAVSkPoQym_iaolH-jyff9OmAn7uJhMyAxgv7nNeqSVutBF-XJVarBSeGUU5IPLleV-08g-rwQpV; login_sid_t=a2b0e92dbac53ded77a3b3a4328efdaa; cross_origin_proto=SSL; WBStorage=f44cc46b96043278|undefined; UOR=,,login.sina.com.cn; wb_view_log=1920*10801',
+        'Host': 'weibo.com',
+        'Referer': 'https://weibo.com/2889942201/GFo7omJqz?type=comment',
+        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/70.0.3538.67 Safari/537.36',
+        'X-Requested-With': 'XMLHttpRequest'
+    }
+
     a = get_location()
 
     scouce = {4298971540840704: '法制日报', 4298989816221761: '成都这点事', 4299075702378443: '澎湃新闻', 4299418075146118: '蓝鲸财经记者工作平台',
@@ -247,13 +260,36 @@ if __name__ == '__main__':
      4299082115420281: '蓝鲸财经记者工作平台', 4298997394909242: '头条新闻', 4299439852536956: '界面', 4298989430127358: '梨视频'}
 
     #重点微博大咔
-    dirt_id = {'4299418075146118': '4299846586743814', '4299423812784809': '4307760998861888', '4298996928897636': '4310362948039865', '4299009805606128': '4310566774816676', '4298982337445859': '4308161407894835', '4299022045365996': '4309604827130660', '4298641625417843': '4310355239287474', '4299013086352881': '4299307195064641', '4298989816221761': '4304012913833423', '4298971540840704': '4299716550047906', '4299080815406936': '4310928705430116', '4299075702378443': '4303543387120975', '4299063618905257': '4305250707383790', '4299439852536956': '4300603800872111', '4298973378181968': '4308019552712965', '4299082115420281': '4299577743524389', '4299076473993416': '4303495751918534', '4298998359639309': '4308205515941261', '4298989430127358': '4311085508508944', '4298997394909242': '4311251749949443', '4299003476719307': '4299701576388896', '4299000293571112': '4300423923977119', '4299406599766183': '4300644934158879', '4299011664045877': '4299105578278556'}
-
+    #dirt_id = {'4299423812784809': '4307760998861888', '4298641625417843': '4310355239287474', '4298989816221761': '4304012913833423', '4299080815406936': '4310928705430116', '4299439852536956': '4300603800872111', '4298998359639309': '4308205515941261', '4299003476719307': '4299701576388896', '4299406599766183': '4300644934158879'}
+    dirt_id = {'4299418075146118': '4299846586743814', '4299423812784809': '4307760998861888',
+               '4298996928897636': '4310362948039865', '4299009805606128': '4310566774816676',
+               '4298982337445859': '4308161407894835', '4299022045365996': '4309604827130660',
+               '4298641625417843': '4310355239287474', '4299013086352881': '4299307195064641',
+               '4298989816221761': '4304012913833423', '4298971540840704': '4299716550047906',
+               '4299080815406936': '4310928705430116', '4299075702378443': '4303543387120975',
+               '4299063618905257': '4305250707383790', '4299439852536956': '4300603800872111',
+               '4298973378181968': '4308019552712965', '4299082115420281': '4299577743524389',
+               '4299076473993416': '4303495751918534', '4298998359639309': '4308205515941261',
+               '4298989430127358': '4311085508508944', '4298997394909242': '4311251749949443',
+               '4299003476719307': '4299701576388896', '4299000293571112': '4300423923977119',
+               '4299406599766183': '4300644934158879', '4299011664045877': '4299105578278556'}
 
     url = "https://weibo.com/aj/v6/mblog/info/big?ajwvr=6&id={}&max_id={}"
     url_page = 'https://weibo.com/aj/v6/mblog/info/big?ajwvr=6&id={}&max_id={}&page={}'   #拼接下一页评论的url
     oneself = 'https://weibo.com/{}'
-    pool = ThreadPool(8)  # 实现一个线程池 ，参数是线程的数量, 这里就是两个线程等待调用
+
+
+    def A(private_url, time_list, scouce):
+        try:
+            r = session.get(private_url, headers=headers_1, verify=False)
+            if r.status_code == 200:
+                a.location_parse(r.text, private_url, time_list, scouce)
+            else:
+                time.sleep(0.5)
+                return A(private_url, time_list, scouce)
+        except Exception as err:
+            print("打印异常",err)
+
     try:
         for i in dirt_id.keys():
             url1 = url.format(i,dirt_id[i])    #拼接每一个博主的 url
@@ -267,15 +303,14 @@ if __name__ == '__main__':
 
                 id_list,time_list = a.parse(a.get_html(page_url))   #每一页有20个左右的用户id、拿到每一个用户的id。
                 print("每一个微博 博主的转发了页数,上面的id", id_list)
-                print("每一个微博 博主的转发了页数,上面的id", time_list)
+                print("每一个微博 博主的转发了页数,上面的time", time_list)
                 for m in range(0,len(id_list)):                                                    #这里写的有问题， 正确的写法是  len(id_list) + 1
                     private_url = oneself.format(id_list[m])      #取每一个用户id。 然后进行拼接。
                     print("详细页面的url", private_url)    #生成每一个用户的url.
-                    pool.apply_async(a.location_parse(session.get(private_url, verify=False),private_url,time_list[m],scouce[int(i)]))  # 这个线程池传参 、原因如果单一去访问。就会变得很慢。  verify=False 是取消验证证书。    1、(, headers= a.headers)去掉了这个 2、timeout=3
-    except Exception as err:
-        print("打印异常",err)
-    pool.close()  # 关闭线程池， 不在提交任务，
-    pool.join()  # 等待线程池里面的任务 运
+                    A(private_url, time_list[m], scouce[int(i)])
+
+    except :
+        pass
 
 
 
