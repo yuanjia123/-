@@ -232,7 +232,6 @@ class get_location():
 if __name__ == '__main__':
     login = Weibo_login('18082539819', '25257758')  # 先设置账号密码
     login.get_username()  # 给传过去的账号密码进行加密
-    login.get_json_data()  # 开始请求
     session = login.login()
 
     a = get_location()
